@@ -9,14 +9,14 @@ update soon
 Installation
 ---
 
-1. Download breakpointer, unzip.
+First, download breakpointer, unzip.
 
 	unzip ruping-Breakpointer-XXX.zip
 	cd ruping-Breakpointer-XXX
 
-2. Make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools).
-3. Write down the bamtools_directory where ./lib/ and ./include/ sub-directories are located.
-4. Make in following way
+Second, make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools).
+Third, write down the bamtools_directory where ./lib/ and ./include/ sub-directories are located.
+Last, make in following way
 
 	make BAMTOOLS_ROOT=/bamtools_directory/
 
