@@ -15,12 +15,14 @@ First, download breakpointer, unzip.
 	cd ruping-Breakpointer-XXX
 
 Second, make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools).
+
 Third, write down the bamtools_directory where ./lib/ and ./include/ sub-directories are located.
+
 Last, make in following way
 
 	make BAMTOOLS_ROOT=/bamtools_directory/
 
-5. You will see a directory called "breakpointer", within which you will find the pipeline script.
+You will see a directory called "breakpointer", within which you will find the pipeline script.
 
 (There are also built-in Linux X86_64 binaries inside ./prebuilt/)
 
