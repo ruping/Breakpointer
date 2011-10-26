@@ -1,4 +1,4 @@
-Breakpointer is a novel tool for locating breakpoints of structural variants (SV) from the alignment of single end reads (SE) produced by next generation sequencing (NGS). It adopts a heuristic method in searching for local mapping signature as a consequence of structural variants. You can redistribute it and/or modify it under the terms of the GNU General Public License.
+Breakpointer is a fast tool for locating breakpoints of structural variants (SV) from the alignment of single end reads (SE) produced by next generation sequencing (NGS). It adopts a heuristic method in searching for local mapping signature created by structural variants. Breakpointer is a command line tool that runs under linux system. You can redistribute it and/or modify it under the terms of the GNU General Public License.
 
 Learn More
 ---
@@ -9,11 +9,16 @@ update soon
 Installation
 ---
 
-1. Make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools).
-2. Change the directories in Makefile to wherebam/lib/ and wherebam/include/ .
-3. make
+1. Download breakpointer, unzip.
+	unzip ruping-Breakpointer-XXX.zip
+	cd ruping-Breakpointer-XXX
+2. Make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools).
+3. Write down the bamtools_directory where ./lib/ and ./include/ sub-directories are located.
+4. Make in following way
+	make BAMTOOLS_ROOT=/bamtools_directory/
+5. You will see a directory called "breakpointer", within which you will find the pipeline script.
 
-There are also built-in Linux X86_64 binaries of breakpointer and breakmis
+(There are also built-in Linux X86_64 binaries inside ./prebuilt/)
 
 Usage
 ---
@@ -41,7 +46,7 @@ Contact
 Sun Ruping
 Dept. Vingron (Computational Molecular Biology)
 Max Planck Institute for Molecular Genetics
-Ihnestra<DF>e 63-73, D-14195 Berlin, Germany
+Ihnestr. 63-73, D-14195 Berlin, Germany
 
 Email: ruping@molgen.mpg.de
 Project Website: https://github.com/ruping/Breakpointer
