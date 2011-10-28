@@ -183,7 +183,7 @@ else {
 $runlevels=1;
 if (exists $runlevel{$runlevels}) {
   printtime();
-  printf "RUNLEVEL 1: scan the read alignment, searching for depth skewed regions\n";
+  printf STDERR "RUNLEVEL 1: scan the read alignment, searching for depth skewed regions\n";
 
   my $endskew = $basename."\.endskew";
   my $op_mapfile = "--mapping $mapfile";
@@ -192,15 +192,24 @@ if (exists $runlevel{$runlevels}) {
   my $op_unique = "";
   if ($unique != 0) {$op_unique = "--unique $unique";}
   my $op_readlen = "";
-  if ($readlen != 0){$op_readlen = "--readlen $readlen";}
+  if ($readlen != 0) {
+    $op_readlen = "--readlen $readlen";
+  }
   my $op_tagu = "";
-  if ($tag_uniq ne "XT"){$op_tagu = "--tag_uniq $tag_uniq";}
+  if ($tag_uniq ne "XT") {
+    $op_tagu = "--tag_uniq $tag_uniq";
+  }
   my $op_valu = "";
-  if ($val_uniq ne "85"){$op_valu = "--val_uniq $val_uniq";}
+  if ($val_uniq ne "85") {
+    $op_valu = "--val_uniq $val_uniq";
+  }
 
   my $cmd = "$BP/breakpointer $op_mapfile $op_winsize $op_readlen $op_unique $op_tagu $op_valu >$out_dir/$endskew";
-
-  RunCommand($cmd,$noexecute);
+  if (-e "$out_dir/$endskew") {
+    printf STDERR "$out_dir/$endskew exists, skip running RUNLEVEL 1\n";
+  } else {
+    RunCommand($cmd,$noexecute);
+  }
   printf "RUNLEVEL 1 done\n";
 }
 
@@ -212,28 +221,40 @@ if (exists $runlevel{$runlevels}) {
 $runlevels=2;
 if (exists $runlevel{$runlevels}) {
   printtime();
-  printf "RUNLEVEL 2: mismatch screening for each depth skewed region\n";
+  printf STDERR "RUNLEVEL 2: mismatch screening for each depth skewed region\n";
 
   my $region_f = "$out_dir/$basename.endskew";
   unless (-r $region_f){
-    printf "warning: $region_f is not readable!\n";
+    printf STDERR "warning: $region_f is not readable!\n";
   }
 
   my $endskewmis = $basename."\.endskew\.mis\.gff";
   my $op_regionf = "--region $region_f";
   my $op_mapping = "--mapping $mapfile";
   my $op_readlen = "--readlen 36";
-  if ($readlen != 0){$op_readlen = "--readlen $readlen";}
+  if ($readlen != 0) {
+    $op_readlen = "--readlen $readlen";
+  }
   my $op_unique = "";
-  if ($unique != 0) {$op_unique = "--unique $unique";}
+  if ($unique != 0) {
+    $op_unique = "--unique $unique";
+  }
   my $op_tagu = "";
-  if ($tag_uniq ne "XT"){$op_tagu = "--tag_uniq $tag_uniq";}
+  if ($tag_uniq ne "XT") {
+    $op_tagu = "--tag_uniq $tag_uniq";
+  }
   my $op_valu = "";
-  if ($val_uniq ne "85"){$op_valu = "--val_uniq $val_uniq";}
+  if ($val_uniq ne "85") {
+    $op_valu = "--val_uniq $val_uniq";
+  }
 
   my $cmd = "$BP/breakmis $op_regionf $op_mapping $op_readlen $op_unique $op_tagu $op_valu >$out_dir/$endskewmis";
-  RunCommand($cmd,$noexecute);
-  printf "RUNLEVEL 2 done\n";
+  if (-e "$out_dir/$endskewmis") {
+    printf STDERR "$out_dir/$endskewmis exists, skip running RUNLEVEL 2\n";
+  } else {
+    RunCommand($cmd,$noexecute);
+  }
+  printf STDERR "RUNLEVEL 2 done\n";
 
 }
 
@@ -244,12 +265,14 @@ if (exists $runlevel{$runlevels}) {
 $runlevels=3;
 if ( exists $runlevel{$runlevels} ) {
   printtime();
-  printf "RUNLEVEL 3: validation using unmapped reads\n";
+  printf STDERR "RUNLEVEL 3: validation using unmapped reads\n";
 
   my $vali = $basename."\.endskew\.mis\.vali\.gff";
   my $op_umr = "--umr $unmapped";
   my $op_readlen = "--readlen 36";
-  if ($readlen != 0){$op_readlen = "--readlen $readlen";}
+  if ($readlen != 0) {
+    $op_readlen = "--readlen $readlen";
+  }
   my $ermis = $basename."\.endskew\.mis\.gff";
   unless (-e "$out_dir/$ermis") {
     printf "warning: $out_dir/$ermis is not readable.\n";
@@ -258,13 +281,16 @@ if ( exists $runlevel{$runlevels} ) {
   my $op_ermis = "--ermis $out_dir/$ermis";
 
   my $cmd = "perl $BP/breakvali.pl $op_umr $op_readlen $op_ermis --verbose >$out_dir/$vali";
-
-  RunCommand($cmd,$noexecute);
-  printf "RUNLEVEL 3 done\n";
+  if (-e "$out_dir/$vali") {
+    printf STDERR "$out_dir/$vali exists, skip running RUNLEVEL 3\n";
+  } else {
+    RunCommand($cmd,$noexecute);
+  }
+  printf STDERR "RUNLEVEL 3 done\n";
 }
 
 printtime();
-printf "DONE.\n";
+printf STDERR "DONE.\n";
 
 
 ###
