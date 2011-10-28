@@ -2,7 +2,7 @@ use strict;
 use Getopt::Long;
 use Data::Dumper;
 use FindBin qw($RealBin);
-use lib "$RealBin/../lib";
+use lib "$RealBin/lib";
 use Fof;
 
 my $umr_file;

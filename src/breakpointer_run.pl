@@ -20,7 +20,7 @@ use Getopt::Long;
 use File::Basename;
 use Data::Dumper;
 use FindBin qw($RealBin);
-use lib "$RealBin/../lib";
+use lib "$RealBin/lib";
 use Fof;
 use Chrstart;
 
@@ -130,7 +130,7 @@ else {
   }
 }
 
-if (-w $out_dir){
+if (-w $out_dir) {
   printf STDERR "output directory is $out_dir.\n";
 }
 else {
@@ -165,21 +165,22 @@ else {
     printf STDERR "warning: $unmapped is not readable or not present.\n";
     exit(0);
   }
-  my @umr_files = Fof->fileorfilename($unmapped);
-  printf STDERR "unmapped reads files are:\n".join("\n",@umr_files)."\n";
-  foreach my $umr (@umr_files) {
-    unless (-r $umr and $umr ne "") {
-       printf STDERR "warning: $umr is not readable, please check the file mode.\n";
-       exit(0);
-    }
-  }
+  #my @umr_files = Fof->fileorfilename($unmapped);
+  printf STDERR "unmapped reads files is:\n".$unmapped."\n";
+  #foreach my $umr (@umr_files) {
+  #  unless (-r $umr and $umr ne "") {
+  #     printf STDERR "warning: $umr is not readable, please check the file mode.\n";
+  #     exit(0);
+  #  }
+  #}
 }
 
+#print Dumper(\%runlevel);
 
 ###
 ###runlevel1:  scan the read alignment, searching for depth skewed regions
 ###
-$runlevels++;
+$runlevels=1;
 if (exists $runlevel{$runlevels}) {
   printtime();
   printf "RUNLEVEL 1: scan the read alignment, searching for depth skewed regions\n";
@@ -208,7 +209,7 @@ if (exists $runlevel{$runlevels}) {
 ###
 ###runlevel2: mismatch screening for each depth skewed region
 ###
-$runlevels++;
+$runlevels=2;
 if (exists $runlevel{$runlevels}) {
   printtime();
   printf "RUNLEVEL 2: mismatch screening for each depth skewed region\n";
@@ -240,8 +241,8 @@ if (exists $runlevel{$runlevels}) {
 ###runlevel3: validation using unmapped reads
 ###
 
-$runlevels++;
-if (exists $runlevel{$runlevels}) {
+$runlevels=3;
+if ( exists $runlevel{$runlevels} ) {
   printtime();
   printf "RUNLEVEL 3: validation using unmapped reads\n";
 
