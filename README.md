@@ -3,7 +3,7 @@ Breakpointer is a fast tool for locating breakpoints of structural variants (SV)
 Learn More
 ---
 
-update soon
+Breakpointer takes advanage of two local mapping features of single-end reads as a consequence of SVs: 1) non-uniform read distribution (depth skewness) and 2) misalignments at the boundaries of SVs. We summarize these features as "breakpoint signature". Breakpointer proceeds in three stages in capturing this signature. It is implemented in C++ and perl. Input is the file or files containing alignment of single-end reads against a reference genome (in .BAM format). Output is the predicted regions containing potential breakpoints of SVs. To be able to read in .BAM files, Breakpointer needs bamtools API, which users should install beforehand.
     
 
 Installation
