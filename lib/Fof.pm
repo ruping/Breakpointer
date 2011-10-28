@@ -20,9 +20,9 @@ sub fileorfilename {
 
   my $line;
 
-  while ( ($line = <IP> ) && ( $nr<20 || defined @fof)) {
+  while ( ($line = <IP> ) && ( $nr < 20 || defined @fof)) {
 
-      next if ($line =~ /^[@#]/);   #skip comment
+      next if ($line =~ /^#/);   #skip comment
 
       if ($line =~ /^(\S+)/) {
 

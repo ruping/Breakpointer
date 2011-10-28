@@ -34,7 +34,9 @@ my $unique = 0;
 my $tag_uniq = "XT";
 my $val_uniq = 85;
 my $unmapped = "";
+my $basename = "";
 my $help;
+my $BP = "./breakpointer";
 
 #if no argument is given, print help
 if (@ARGV == 0) {
@@ -54,6 +56,7 @@ GetOptions (
             "tag_uniq=s"   => \$tag_uniq,
             "val_uniq=i"   => \$val_uniq,
             "unmap=s"      => \$unmapped,
+            "basename=s"   => \$basename,
             "help|h"       => \$help,
 	   );
 
@@ -79,6 +82,11 @@ if ($runlevels != 0) {
     }
   }
 }
+else{
+  for (1..3){
+   $runlevel{$_} = 1;
+  }
+}
 
 
 ###
@@ -96,30 +104,40 @@ else{
 }
 
 if (!$winsize){
-  printf STDERR "no window size is given, will take default.\n";
+  printf STDERR "warning: no window size is given, will take default.\n";
 }
 else{
   printf STDERR "window size is $winsize.\n";
 }
 
 if ($mapfile eq ""){
-  printf STDERR "no mapping file is given, stop running.\n";
+  printf STDERR "warning: no mapping file is given, stop running.\n";
   helpm();
 }
 else {
+  $basename = basename($mapfile);
   unless ( -r $mapfile ) {
-    printf STDERR "$mapfile is not readable or not present.\n";
+    printf STDERR "warning: $mapfile is not readable or not present.\n";
     exit(0);
   }
   my @mapping_files = Fof->fileorfilename($mapfile);
   printf STDERR "mapping files are:\n".join("\n",@mapping_files)."\n";
   foreach my $mapping ( @mapping_files ) {
     unless ( -r $mapping) {
-      printf STDERR "$mapping is not readable or not existing, please check the file mode.\n";
+      printf STDERR "warning: $mapping is not readable or not existing, please check the file mode.\n";
       exit(0);
     }
   }
 }
+
+if (-w $out_dir){
+  printf STDERR "output directory is $out_dir.\n";
+}
+else {
+  printf STDERR "$out_dir is not writable\n";
+  exit(0);
+}
+printf STDERR "output basename is $basename.\n";
 
 if ($unique == 0){
   printf STDERR "take all mapped reads.\n";
@@ -132,34 +150,26 @@ printf STDERR "unique tag in the mapping file is $tag_uniq.\n";
 printf STDERR "value for the unique tag is $val_uniq.\n";
 
 if ($readlen == 0){
-  printf STDERR "no readlen is given, will take default.\n";
+  printf STDERR "warning: no readlen is given, will take default 36bp.\n";
 }
 else{
   printf STDERR "read length is $readlen.\n";
 }
 
-if (-w $out_dir){
-  printf STDERR "output directory is $out_dir.\n";
-}
-else {
-  printf STDERR "$out_dir is not writable\n";
-  exit(0);
-}
-
 if ($unmapped eq ""){
-  printf STDERR "no unmapped reads file is given, runlevel3 will be skipped\n";
+  printf STDERR "warning: no unmapped reads file is given, runlevel3 will be skipped\n";
   delete $runlevel{3};
 }
 else {
   unless ( -r $unmapped ) {
-    printf STDERR "$unmapped is not readable or not present.\n";
+    printf STDERR "warning: $unmapped is not readable or not present.\n";
     exit(0);
   }
   my @umr_files = Fof->fileorfilename($unmapped);
   printf STDERR "unmapped reads files are:\n".join("\n",@umr_files)."\n";
-  foreach my $umr (@umr_files){
+  foreach my $umr (@umr_files) {
     unless (-r $umr and $umr ne "") {
-       printf STDERR "$umr is not readable, please check the file mode.\n";
+       printf STDERR "warning: $umr is not readable, please check the file mode.\n";
        exit(0);
     }
   }
@@ -167,41 +177,98 @@ else {
 
 
 ###
-###runlevel1: trim the reads and insert size detection using spiked in reads
-###
-$runlevels = 1;
-if (exists $runlevel{$runlevels}) {
-  printtime();
-  print "runlevel 1\n";
-}
-
-
-
-
-###
-###runlevel2: trim the reads and insert size detection using spiked in reads
+###runlevel1:  scan the read alignment, searching for depth skewed regions
 ###
 $runlevels++;
 if (exists $runlevel{$runlevels}) {
   printtime();
-  print "runlevel 2\n";
+  printf "RUNLEVEL 1: scan the read alignment, searching for depth skewed regions\n";
+
+  my $endskew = $basename."\.endskew";
+  my $op_mapfile = "--mapping $mapfile";
+  my $op_winsize = "";
+  if ($winsize){$op_winsize = "--winsize $winsize";}
+  my $op_unique = "";
+  if ($unique != 0) {$op_unique = "--unique $unique";}
+  my $op_readlen = "";
+  if ($readlen != 0){$op_readlen = "--readlen $readlen";}
+  my $op_tagu = "";
+  if ($tag_uniq ne "XT"){$op_tagu = "--tag_uniq $tag_uniq";}
+  my $op_valu = "";
+  if ($val_uniq ne "85"){$op_valu = "--val_uniq $val_uniq";}
+
+  my $cmd = "$BP/breakpointer $op_mapfile $op_winsize $op_readlen $op_unique $op_tagu $op_valu >$out_dir/$endskew";
+
+  RunCommand($cmd,$noexecute);
+  printf "RUNLEVEL 1 done\n";
 }
 
+
+
 ###
-###runlevel3: trim the reads and insert size detection using spiked in reads
+###runlevel2: mismatch screening for each depth skewed region
 ###
 $runlevels++;
 if (exists $runlevel{$runlevels}) {
   printtime();
-  print "runlevel 3\n";
+  printf "RUNLEVEL 2: mismatch screening for each depth skewed region\n";
+
+  my $region_f = "$out_dir/$basename.endskew";
+  unless (-r $region_f){
+    printf "warning: $region_f is not readable!\n";
+  }
+
+  my $endskewmis = $basename."\.endskew\.mis\.gff";
+  my $op_regionf = "--region $region_f";
+  my $op_mapping = "--mapping $mapfile";
+  my $op_readlen = "--readlen 36";
+  if ($readlen != 0){$op_readlen = "--readlen $readlen";}
+  my $op_unique = "";
+  if ($unique != 0) {$op_unique = "--unique $unique";}
+  my $op_tagu = "";
+  if ($tag_uniq ne "XT"){$op_tagu = "--tag_uniq $tag_uniq";}
+  my $op_valu = "";
+  if ($val_uniq ne "85"){$op_valu = "--val_uniq $val_uniq";}
+
+  my $cmd = "$BP/breakmis $op_regionf $op_mapping $op_readlen $op_unique $op_tagu $op_valu >$out_dir/$endskewmis";
+  RunCommand($cmd,$noexecute);
+  printf "RUNLEVEL 2 done\n";
+
 }
 
+###
+###runlevel3: validation using unmapped reads
+###
+
+$runlevels++;
+if (exists $runlevel{$runlevels}) {
+  printtime();
+  printf "RUNLEVEL 3: validation using unmapped reads\n";
+
+  my $vali = $basename."\.endskew\.mis\.vali\.gff";
+  my $op_umr = "--umr $unmapped";
+  my $op_readlen = "--readlen 36";
+  if ($readlen != 0){$op_readlen = "--readlen $readlen";}
+  my $ermis = $basename."\.endskew\.mis\.gff";
+  unless (-e "$out_dir/$ermis") {
+    printf "warning: $out_dir/$ermis is not readable.\n";
+    exit(0);
+  }
+  my $op_ermis = "--ermis $out_dir/$ermis";
+
+  my $cmd = "perl $BP/breakvali.pl $op_umr $op_readlen $op_ermis --verbose >$out_dir/$vali";
+
+  RunCommand($cmd,$noexecute);
+  printf "RUNLEVEL 3 done\n";
+}
+
+printtime();
+printf "DONE.\n";
 
 
-###------------------------------------------------------------------------###
-###     subroutine region                                                  ###
-###------------------------------------------------------------------------###
-
+###
+###subroutine region----------------------------
+###
 
 sub RunCommand {
   my ($command,$noexecute) = @_ ;
@@ -214,11 +281,11 @@ sub RunCommand {
 
 sub printtime {
   my @time = localtime(time);
-  printf STDERR "[".($time[5]+1900)."\/".($time[4]+1)."\/".$time[3]." ".$time[2].":".$time[1].":".$time[0]."]\t";
+  printf STDERR "\n[".($time[5]+1900)."\/".($time[4]+1)."\/".$time[3]." ".$time[2].":".$time[1].":".$time[0]."]\t";
 }
 
 sub helpm {
-  print "\nusage: $0 [options]\n\nOptions:\n";
+  print "\nBreakpointer v0.1 usage: $0 [options]\n\nOptions:\n";
   print "\t--winsize\t<int>\t\tthe window size, default is 10 for < 50bp reads, 20 for longer reads.\n";
   print "\t--readlen\t<int>\t\tthe length of the read (now only support fixed length)\n";
   print "\t--mapping\t<string>\tthe mapping file in BAM format. It could be an individual BAM file or a file listing the filenames of multiple BAM files (line seperated).\n\t\t\t\t\tAll the BAM files must be sorted SAMELY according to chromosomes and coordinates. They should contain header tag \"\@HD\tVN:1.0\tSO:coordinate\".\n";
@@ -232,6 +299,7 @@ sub helpm {
   print "\t\t\t\t\trunlevel 2: mismatch screeing for each depth skewed region;\n";
   print "\t\t\t\t\trunlevel 3: validate each candidate region by looking for support from unmappable reads.\n";
   print "\t--unmap\t\t<string>\tFile containing unmapped reads, either one file or a file listing the names of multiple files. must be fasta/fastq format.\n";
+  print "\t--basename\t<string>\tthe basename of the output files (default: take the basename of the mapping files)\n";
   print "\t--help\t\t\t\tprint this help message.\n\n\n";
   exit 0;
 }
