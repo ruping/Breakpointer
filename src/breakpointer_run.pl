@@ -165,14 +165,14 @@ else {
     printf STDERR "warning: $unmapped is not readable or not present.\n";
     exit(0);
   }
-  #my @umr_files = Fof->fileorfilename($unmapped);
-  printf STDERR "unmapped reads files is:\n".$unmapped."\n";
-  #foreach my $umr (@umr_files) {
-  #  unless (-r $umr and $umr ne "") {
-  #     printf STDERR "warning: $umr is not readable, please check the file mode.\n";
-  #     exit(0);
-  #  }
-  #}
+  my @umr_files = Fof->fileorfilename($unmapped);
+  printf STDERR "unmapped reads files is:\n".join("\n",@umr_files)."\n";
+  foreach my $umr (@umr_files) {
+    unless (-r $umr and $umr ne "") {
+       printf STDERR "warning: $umr is not readable, please check the file mode.\n";
+       exit(0);
+    }
+  }
 }
 
 #print Dumper(\%runlevel);

@@ -10,7 +10,7 @@ sub fileorfilename {
 
   my ($class, $input) = @_;
 
-  my @fof;
+  my @fof = ();
 
   my @files = map( <${_}>, $input );
 
@@ -20,7 +20,7 @@ sub fileorfilename {
 
   my $line;
 
-  while ( ($line = <IP> ) && ( $nr < 20 || defined @fof)) {
+  while ( ($line = <IP> ) && ( $nr < 20 || scalar(@fof) != 0)) {
 
       next if ($line =~ /^#/);   #skip comment
 
@@ -34,7 +34,7 @@ sub fileorfilename {
   }
   close IP;
 
-  if (defined @fof) {
+  if (scalar(@fof) != 0) {
     @files = @fof;
   }
 
