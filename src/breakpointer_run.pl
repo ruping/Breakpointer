@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #******************************************************************************#
-#  breakpointer_run.pl @ Breakpointer
+#  breakpointer_run.pl @ Breakpointer (version 0.1)
 #  The pipeline script of Breakpointer.
 #
 #  (c) 2011 - Sun Ruping

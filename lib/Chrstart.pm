@@ -31,6 +31,7 @@ sub getchrpos{
       }
 
       $chr_old = $chr;
+
     }
 
     close SAMFILE;

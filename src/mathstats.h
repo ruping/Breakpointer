@@ -7,7 +7,6 @@
 #define R_D_exp(x) exp(x)
 using namespace std;
 
-
 double pbinom(double x, double n, double p, int lower_tail);
 double pbeta(double x, double pin, double qin, int lower_tail);
 void bratio(double a, double b, double x, double y, double *w, double *w1, int *ierr);
@@ -33,7 +32,6 @@ static double erf__(double);
 static double rexpm1(double);
 static double erfc1(int, double);
 static double gsumln(double, double);
-
 
 double pbinom(double x, double n, double p, int lower_tail)
 {

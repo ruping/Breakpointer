@@ -123,7 +123,6 @@ void usage()
   fprintf(stdout, "-u --unique               take only uniquelly mapped reads (default: take all mapped reads).\n                          since different mappers generate different tags for uniqueness, if -q is set, user shoule provide unique tag info (see tag/val_uniq). \n                          we recommand not to set this option if the mapping file only contain a few multiple location reads, in case users are not sure about the unique tags\n");
   fprintf(stdout, "-t --tag_uniq    <string> the tag in the bam file denotating whether a read is uniquely mapped (default \"XT\" is taken as from BWA).\n");
   fprintf(stdout, "-v --val_uniq    <int>    the value for the above tag of uniquely mapped reads (default value is taken as from the output from BWA).\n");
-  //fprintf(stdout, "-i --indiprint   print the individual instead of merged windows (default: not print), if set, use 2> to do the output\n");
   fprintf(stdout, "-h --help                 print the help message.\n");
   fprintf(stdout, "\n");
 }

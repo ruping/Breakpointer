@@ -3,7 +3,7 @@ Breakpointer is a fast tool for locating breakpoints of structural variants (SV)
 Learn More
 ---
 
-Breakpointer takes advanage of two local mapping features of single-end reads as a consequence of SVs: 1) non-uniform read distribution (depth skewness) and 2) misalignments at the boundaries of SVs. We summarize these features as "breakpoint signature". Breakpointer proceeds in three stages in capturing this signature. It is implemented in C++ and perl. Input is the file or files containing alignment of single-end reads against a reference genome (in .BAM format). Output is the predicted regions containing potential breakpoints of SVs. To be able to read in .BAM files, Breakpointer needs bamtools API, which users should install beforehand.
+Breakpointer takes advanage of two local mapping features of single-end reads as a consequence of SVs: 1) non-uniform read distribution (depth skewness) and 2) misalignments at the boundaries of SVs. We summarize these features as "breakpoint signature". Breakpointer proceeds in three stages in capturing this signature. It is implemented in C++ and perl. Input is the file or files containing alignments of single-end reads against a reference genome (in .BAM format). Output is the predicted regions containing potential breakpoints of SVs (in .GFF format). To be able to read in .BAM files, Breakpointer requires bamtools API, which users should install beforehand.
     
 
 Installation
@@ -16,7 +16,7 @@ First, download breakpointer, unzip.
 
 Second, make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools). Then write down the bamtools_directory where ./lib/ and ./include/ sub-directories are located.
 
-Third, run make in following way
+Third, run make in following way to install
 
 	make BAMTOOLS_ROOT=/bamtools_directory/
 

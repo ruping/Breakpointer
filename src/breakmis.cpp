@@ -12,11 +12,6 @@
   Breakpointer is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License.
 
-compile g++
--I /scratch/ngsvin2/RNA-seq/ruping/Tools/bamtools/include/ (include of bamtools)
--L /scratch/ngsvin2/RNA-seq/ruping/Tools/bamtools/lib/     (lib of bamtools)
--lbamtools -lz -static -Wall -O3
-
 ******************************************************************************/
 
 #include <api/BamReader.h>

@@ -14,7 +14,6 @@
 #include <cstdlib>
 #include <cstring>
 
-
 struct parameters {
   char* region_f;
   char* mapping_f;

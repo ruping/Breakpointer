@@ -22,7 +22,7 @@ sub fileorfilename {
 
   while ( ($line = <IP> ) && ( $nr < 20 || scalar(@fof) != 0)) {
 
-      next if ($line =~ /^#/);   #skip comment
+      next if ($line =~ /^[#@]/);   #skip comment
 
       if ($line =~ /^(\S+)/) {
 
