@@ -14,7 +14,6 @@
 #  it under the terms of the GNU General Public License
 #******************************************************************************#
 
-
 use strict;
 use Getopt::Long;
 use File::Basename;
@@ -36,7 +35,7 @@ my $val_uniq = 85;
 my $unmapped = "";
 my $basename = "";
 my $help;
-my $BP = "./breakpointer";
+my $BP = "$RealBin/";
 
 #if no argument is given, print help
 if (@ARGV == 0) {
@@ -48,7 +47,7 @@ if (@ARGV == 0) {
 GetOptions (
             "runlevel=s"   => \$runlevels,
             "noexecute"    => \$noexecute,
-            "winsize=i"    => \$winsize,
+            "windowsize=i" => \$winsize,
             "mapping=s"    => \$mapfile,
             "readlen=i"    => \$readlen,
             "outdir=s"     => \$out_dir,
@@ -313,7 +312,7 @@ sub printtime {
 
 sub helpm {
   print "\nBreakpointer v0.1 usage: $0 [options]\n\nOptions:\n";
-  print "\t--winsize\t<int>\t\tthe window size, default is 10 for < 50bp reads, 20 for longer reads.\n";
+  print "\t--windowsize\t<int>\t\tthe window size, default is 10 for < 50bp reads, 20 for longer reads.\n";
   print "\t--readlen\t<int>\t\tthe length of the read (now only support fixed length)\n";
   print "\t--mapping\t<string>\tthe mapping file in BAM format. It could be an individual BAM file or a file listing the filenames of multiple BAM files (line seperated).\n\t\t\t\t\tAll the BAM files must be sorted SAMELY according to chromosomes and coordinates. They should contain header tag \"\@HD\tVN:1.0\tSO:coordinate\".\n";
   print "\t--outdir\t<string>\tthe output directory (default: current directory)\n";
