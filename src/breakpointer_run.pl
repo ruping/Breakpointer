@@ -187,7 +187,7 @@ if (exists $runlevel{$runlevels}) {
   my $endskew = $basename."\.endskew";
   my $op_mapfile = "--mapping $mapfile";
   my $op_winsize = "";
-  if ($winsize){$op_winsize = "--winsize $winsize";}
+  if ($winsize){$op_winsize = "--windowsize $winsize";}
   my $op_unique = "";
   if ($unique != 0) {$op_unique = "--unique $unique";}
   my $op_readlen = "";

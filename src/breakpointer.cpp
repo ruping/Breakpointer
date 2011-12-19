@@ -52,6 +52,7 @@ struct window {
   unsigned int depth;  //the depth of this window
   unsigned int deps;   //the start depth
   unsigned int depe;   //the end depth
+  vector <unsigned int> v_length; 
 };
 
 //for read storage
@@ -72,15 +73,16 @@ int main (int argc, char **argv){
    
   // check the arguments
 
-  unsigned int read_length = 36;
+  unsigned int read_length = 0;
   if ( param->readlen ) read_length = param->readlen;  //argument readlength
-  else cerr << "no readlength argument is given, 36bp taken as default" << endl;
+  else cerr << "no readlength argument is given, using variable read length setting" << endl;
 
   unsigned int windowsize;
   if ( param->windowsize ) windowsize = param->windowsize;   //argument windowsize
   else {
-    if (read_length <= 50) windowsize = 10;
-    if (read_length > 50)  windowsize = 20;
+    if (read_length <= 50 && read_length != 0 ) windowsize = 10;
+    if (read_length > 50)                       windowsize = 20;
+    if (read_length == 0)                       windowsize = 20;
   }
   cerr << "windowsize is: " << windowsize << endl;
 
@@ -242,7 +244,7 @@ int main (int argc, char **argv){
 
     while (iter != windows.end()){ //iterate the windows
 
-      if ((iter->second).depth != 0){  //old windows, only compare with the new read
+      if ((iter->second).depth != 0) {  //old windows, only compare with the new read
 
         if ((iter->second).end < alignmentStart){ //the window is beyond the new read start, print the window and delete it
           print_endepth(oldchr, (*iter).first, (*iter).second, prob);
