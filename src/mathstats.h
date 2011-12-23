@@ -46,7 +46,7 @@ double pbeta(double x, double pin, double qin, int lower_tail)
   bratio(pin, qin, x, x1, &w, &wc, &ierr);
   if (w == 0.)  w += 1e-9;
   if (wc == 0.) wc += 1e-9;
-  return lower_tail ? -log10(w) : -log10(wc);
+  return lower_tail ? w : wc;
 }
 
 void bratio(double a, double b, double x, double y, double *w, double *w1, int *ierr)

@@ -312,8 +312,8 @@ sub printtime {
 
 sub helpm {
   print "\nBreakpointer v0.1 usage: $0 [options]\n\nOptions:\n";
-  print "\t--windowsize\t<int>\t\tthe window size, default is 10 for < 50bp reads, 20 for longer reads.\n";
-  print "\t--readlen\t<int>\t\tthe length of the read (now only support fixed length)\n";
+  print "\t--windowsize\t<int>\t\tthe window size, default is 10 for < 50bp reads, 20 for longer reads/variable length reads.\n";
+  print "\t--readlen\t<int>\t\tthe length of the read (default: using variable read length)\n";
   print "\t--mapping\t<string>\tthe mapping file in BAM format. It could be an individual BAM file or a file listing the filenames of multiple BAM files (line seperated).\n\t\t\t\t\tAll the BAM files must be sorted SAMELY according to chromosomes and coordinates. They should contain header tag \"\@HD\tVN:1.0\tSO:coordinate\".\n";
   print "\t--outdir\t<string>\tthe output directory (default: current directory)\n";
   print "\t--unique\t<0/1>\t\t0: take all the alignments (default), 1: take only unique alinged reads.\n\t\t\t\t\tIf your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0).\n\t\t\t\t\tIf the BAM files contain many multi-location alignments, it is better to set it to 1.\n\t\t\t\t\tHowever, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).\n";

@@ -118,8 +118,8 @@ void usage()
   fprintf(stdout, "\n");
   fprintf(stdout, "Usage: %s options >output\n\n", program_name);
   fprintf(stdout, "-m --mapping     <string> A BAM alignment file or a file containing the filenames of multiple BAM files (one file per line). MUST be according to the chromosome and start position.\n                          In case of multiple BAM files, make sure these BAM files are sorted samely (require header tag: \"@HD\tVN:1.0\tSO:coordinate\").\n");
-  fprintf(stdout, "-w --windowsize  <int>    the size in bp of the sliding window (default: 10 for reads < 50bp, 20 for longer).\n");
-  fprintf(stdout, "-l --readlen     <int>    the size in bp of the read length (default: 36bp).\n");
+  fprintf(stdout, "-w --windowsize  <int>    the size in bp of the sliding window (default: 10 for reads < 50bp, 20 for longer and variable read length).\n");
+  fprintf(stdout, "-l --readlen     <int>    the size in bp of the read length (default: allowing variable read length).\n");
   fprintf(stdout, "-u --unique               take only uniquelly mapped reads (default: take all mapped reads).\n                          since different mappers generate different tags for uniqueness, if -q is set, user shoule provide unique tag info (see tag/val_uniq). \n                          we recommand not to set this option if the mapping file only contain a few multiple location reads, in case users are not sure about the unique tags\n");
   fprintf(stdout, "-t --tag_uniq    <string> the tag in the bam file denotating whether a read is uniquely mapped (default \"XT\" is taken as from BWA).\n");
   fprintf(stdout, "-v --val_uniq    <int>    the value for the above tag of uniquely mapped reads (default value is taken as from the output from BWA).\n");

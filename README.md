@@ -1,5 +1,6 @@
 Breakpointer is a fast tool for locating sequence breakpoints from the alignment of single end reads (SE) produced by next generation sequencing (NGS). It adopts a heuristic method in searching for local mapping signatures created by insertion/deletions (indels) or more complex structural variants(SVs). With current NGS single-end sequencing data, the output regions by Breakpoint mainly contain the approximate breakpoints of indels and a limited number of large SVs. Notably, Breakpointer can uncover breakpoints of insertions which are longer than the read length. Breakpointer also can find breakpoints of many variants located in repetitive regions. The regions can be used not only as a extra support for SV predictions by other tools (such as by split-read method), but also can serve as a database for searching variants which might be missed by other tools. Breakpointer is a command line tool that runs under linux system. You can redistribute it and/or modify it under the terms of the GNU General Public License.
 
+
 Learn More
 ---
 
@@ -14,7 +15,7 @@ First, download breakpointer, unzip.
 	unzip ruping-Breakpointer-XXX.zip
 	cd ruping-Breakpointer-XXX
 
-Second, make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools). Then write down the bamtools_directory where ./lib/ and ./include/ sub-directories are located.
+Second, make sure you have installed Bamtools (https://github.com/pezmaster31/bamtools). Then write down the bamtools_directory where ./lib/ and ./include/ sub-directories are located. Currently bamtools 2.0 has been tested.
 
 Third, run make in following way to install
 
@@ -39,8 +40,8 @@ Or you could run step by step:
 
 Options
 ---
-	--winsize <int> the window size, default is 10 for < 50bp reads, 20 for longer reads.
-	--readlen <int> the length of the read (now only support fixed length)
+	--winsize <int> the window size, default is 10 for < 50bp reads, 20 for longer/variable length reads.
+	--readlen <int> the length of the read (default: using variable read length).
 	--mapping <string> the mapping file in BAM format. It could be an individual BAM file or a file listing the filenames of multiple BAM files (line seperate).All the BAM files must be sorted SAMELY according to chromosomes and coordinates. They should contain header tag "@HD   VN:1.0  SO:coordinate".
 	--outdir <string> the output directory (default: current directory)
 	--unique <0/1> 0: take all the alignments (default), 1: take only unique alinged reads. If your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0). If the BAM files contain many multi-location alignments, it is better to set it to 1. However, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).

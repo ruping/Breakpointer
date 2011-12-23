@@ -47,12 +47,18 @@ float ol_ratio2 = 0;
 float ol_score  = 0;
 
 //for window storage
+struct bucket {
+  unsigned int bdepth;  //the depth of this window
+  unsigned int bdeps;   //the start depth
+  unsigned int bdepe;   //the end depth 
+};
+
 struct window {
-  unsigned int end;    //the end of the window = start  + winsize - 1
+  map <unsigned int, struct bucket> buckets;
+  unsigned int end;    //the end of the window = start  + winsize - 1 we don't need it here
   unsigned int depth;  //the depth of this window
   unsigned int deps;   //the start depth
-  unsigned int depe;   //the end depth
-  vector <unsigned int> v_length; 
+  unsigned int depe;   //the end depth 
 };
 
 //for read storage
@@ -62,7 +68,7 @@ struct read {
 };
 
 inline void ParseCigar(const vector<CigarOp> &cigar, vector<int> &blockStarts, vector<int> &blockEnds, unsigned int &alignmentEnd); //deprecated
-inline void print_endepth(const string &chr, unsigned int winstart, struct window &window, const float &prob);
+inline void print_endepth(const string &chr, unsigned int winstart, const float &winsize, struct window &window, const float &prob);
 inline void splitstring(const string &str, vector<string> &elements, const string &delimiter);
 inline string int2str(unsigned int &);
 
@@ -90,23 +96,29 @@ int main (int argc, char **argv){
 
   float winsize = windowsize;
   float readlen = read_length;
-  float prob = (2 * winsize) / (winsize + readlen);
-  cerr << "binomial prob: " << prob << endl;
+  float prob = 0.;
+  if (read_length != 0) {
+    prob  = (2 * winsize) / (winsize + readlen);
+    cerr << "binomial prob: " << prob << endl;
+  }
+  else {
+    cerr << "binomial probs will be decided for each length group" << endl;
+  }
 
   unsigned int unique = param->unique;  // argument unique
   string tag_uniq = param->tag_uniq;
   unsigned int val_uniq;
-  if (tag_uniq == "") tag_uniq = "XT"; //default for BWA alignment
+  if (tag_uniq == "") tag_uniq = "XT";  //default for BWA alignment
   if (param->val_uniq) val_uniq = param->val_uniq;
-  else val_uniq = 85;   //default for BWA alignment
+  else val_uniq = 85;                   //default for BWA alignment
   cerr << "unique tag is: " << tag_uniq << "\t" << val_uniq << endl; 
   
-  string oldchr;                       //for checking the chromosome
-  unsigned int oldstart = 0;           //compare start (piling up)
+  string oldchr;                        //for checking the chromosome
+  unsigned int oldstart = 0;            //compare start (piling up)
 
-  map <unsigned int, window> windows;  //MAP container of windows
-  deque <struct read> reads;           //DEQUE container of reads
-  set <string> pileup;                 //SET container of piling-up reads
+  map <unsigned int, struct window> windows; //MAP container of windows
+  deque <struct read> reads;            //DEQUE container of reads
+  set <string> pileup;                  //SET container of piling-up reads
 
 //-------------------------------------------------------------------------------------------------------+
 // BAM input (file or filenames?)                                                                        |
@@ -158,6 +170,7 @@ int main (int argc, char **argv){
   for(; fit != fnames.end(); fit++){
     cerr << *fit << endl;
   }
+
 //-------------------------------------------------------------------------------------------------------+
 // end of file or filenames                                                                              |
 //-------------------------------------------------------------------------------------------------------+
@@ -181,13 +194,18 @@ int main (int argc, char **argv){
     if (bam.IsMapped() == false) continue; //skip unaligned reads
 
     string read_qual =  bam.Qualities;
-    if (read_qual.size() != read_length)  continue; //skip the read with different length
-    
+    unsigned int real_length = read_qual.size();
+
+    if (read_length != 0) {     // the length is preset
+      if (real_length != read_length) //skip the read with different length
+         continue;
+    }
+
     if (refs.at(bam.RefID).RefName != oldchr && !windows.empty()) { //a new chr, the windows should be printed out and then clean up
 
       map <unsigned int,window>::iterator iter = windows.begin();
-      for (; iter != windows.end() ; iter++){ //print the last windows of the old chr
-        print_endepth(oldchr, (*iter).first, (*iter).second, prob);
+      for (; iter != windows.end() ; iter++) { //print the last windows of the old chr
+        print_endepth(oldchr, (*iter).first, winsize, (*iter).second, prob);
       }
 
       windows.clear(); //clear windows
@@ -221,41 +239,56 @@ int main (int argc, char **argv){
 
     //skip piling up reads (pileup based no starts+ends+strand)
     string alignSum = int2str(alignmentStart) + int2str(alignmentEnd) + strand;
-    if (alignmentStart != oldstart){
+    if (alignmentStart != oldstart) {
       pileup.clear();          //clear pileup set
       pileup.insert(alignSum); //insert the new read
     }
     else if (alignmentStart == oldstart){
-      if (pileup.count(alignSum)) continue; //if find pileup read
+      if   (pileup.count(alignSum)) continue; //if find pileup read
       else pileup.insert(alignSum); //insert
     }   
 
     //insert two ends into the windows map, default depths are 0
-    window tmp1 = {alignmentStart+windowsize-1, 0, 0, 0};
-    windows.insert( map <unsigned int,window>::value_type(alignmentStart, tmp1) );
-    window tmp2 = {alignmentEnd+windowsize-1, 0, 0, 0};
-    windows.insert( map <unsigned int,window>::value_type(alignmentEnd, tmp2) );
+    bucket tmpb = {0, 0, 0};  
+    map <unsigned int, struct bucket> tmpm;
+    tmpm.insert( pair <unsigned int, struct bucket> (real_length, tmpb));
+    window tmpw1 = {tmpm, alignmentStart+windowsize-1, 0, 0, 0};    
+    window tmpw2 = {tmpm, alignmentEnd+windowsize-1,   0, 0, 0};
+    windows.insert( pair < unsigned int, struct window > (alignmentStart, tmpw1) );
+    windows.insert( pair < unsigned int, struct window > (alignmentEnd, tmpw2) );
 
     //add the current read into the reads deque
     struct read tmp3 = {alignmentStart, alignmentEnd}; 
     reads.push_back(tmp3);
 
-    map <unsigned int,window>::iterator iter = windows.begin();
+    map <unsigned int, struct window>::iterator iter = windows.begin();
 
-    while (iter != windows.end()){ //iterate the windows
+    while (iter != windows.end()) { //iterate the windows
 
       if ((iter->second).depth != 0) {  //old windows, only compare with the new read
 
         if ((iter->second).end < alignmentStart){ //the window is beyond the new read start, print the window and delete it
-          print_endepth(oldchr, (*iter).first, (*iter).second, prob);
+          print_endepth(oldchr, (*iter).first, winsize, (*iter).second, prob);
           windows.erase(iter++);
           continue;
         }
 
         if ((iter->second).end >= alignmentStart && iter->first <= alignmentEnd){
-          (iter->second).depth++;                                         //depth++
-          if (iter->first <= alignmentStart) (iter->second).deps++;       //depth_start++
-          if ((iter->second).end >= alignmentEnd) (iter->second).depe++;  //depth_end++
+          (iter->second).depth++;    //depth++
+          if ((iter->second).buckets.count(real_length) > 0)
+            ((iter->second).buckets)[real_length].bdepth++;
+          else {
+            ((iter->second).buckets).insert(pair <unsigned int, struct bucket> (real_length, tmpb));
+            ((iter->second).buckets)[real_length].bdepth++;
+          }
+          if (iter->first <= alignmentStart){
+             (iter->second).deps++;  //depth_start++
+             ((iter->second).buckets)[real_length].bdeps++;
+          }
+          if ((iter->second).end >= alignmentEnd){
+             (iter->second).depe++;  //depth_end++
+             ((iter->second).buckets)[real_length].bdepe++;
+          }
         }
 
       } //old window
@@ -272,9 +305,21 @@ int main (int argc, char **argv){
           }
 
           if (iter2->end >= iter->first && iter2->start <= (iter->second).end){
-            (iter->second).depth++;                                       //depth++
-            if (iter2->end <= (iter->second).end) (iter->second).depe++;  //depth_end++
-            if (iter2->start >= iter->first) (iter->second).deps++;       //depth_start++ 
+            (iter->second).depth++;    //depth++
+            if ((iter->second).buckets.count(real_length) > 0)
+              ((iter->second).buckets)[real_length].bdepth++;
+            else {
+              ((iter->second).buckets).insert(pair <unsigned int, struct bucket> (real_length, tmpb));
+              ((iter->second).buckets)[real_length].bdepth++;
+            }
+            if (iter2->end <= (iter->second).end){
+               (iter->second).depe++;  //depth_end++
+               ((iter->second).buckets)[real_length].bdepe++;
+            }
+            if (iter2->start >= iter->first){
+               (iter->second).deps++;  //depth_start++
+               ((iter->second).buckets)[real_length].bdeps++;
+            } 
           } //overlap
 
           iter2++;
@@ -296,10 +341,10 @@ int main (int argc, char **argv){
   
 
   //print out the windows in the pool
-  if (!windows.empty()){
+  if (!windows.empty()) {
     map <unsigned int,window>::iterator iter = windows.begin();
     for (; iter != windows.end() ; iter++){ //print the last windows of the old chr
-      print_endepth(oldchr, (*iter).first, (*iter).second, prob);
+      print_endepth(oldchr, (*iter).first, winsize, (*iter).second, prob);
     }
     windows.clear(); //clear windows
     reads.clear();   //clear reads
@@ -376,7 +421,8 @@ inline void ParseCigar(const vector<CigarOp> &cigar, vector<int> &blockStarts, v
   alignmentEnd = currPosition;
 }
 
-inline void print_endepth(const string &chr, unsigned int winstart, struct window &window, const float &prob){
+inline void print_endepth(const string &chr, unsigned int winstart, const float &winsize, struct window &window, const float &prob){
+
   float depth  = window.depth;
   float starts = window.deps;
   float ends   = window.depe;
@@ -385,7 +431,30 @@ inline void print_endepth(const string &chr, unsigned int winstart, struct windo
 
   if (depth > 1 && ratio1 > prob) {
 
-    double score = pbinom((starts+ends), depth, prob, 0);
+    double score;
+
+    if (prob != 0.){  // single
+      score = pbinom((starts+ends), depth, prob, 0);
+      score = -log10(score);
+    }
+    else {            // multiple
+      float bcs = 0.;
+      map <unsigned int, struct bucket>::iterator bit = window.buckets.begin();
+      for (; bit != window.buckets.end(); bit++) {
+        if ((bit->second).bdepth < 2) continue;
+        else {
+          float bdp = (bit->second).bdepth;
+          float bds = (bit->second).bdeps;
+          float bde = (bit->second).bdepe;
+          float bprob = (2 * winsize) / (winsize + (bit->first));
+          float bscore = (bdp/depth)*pbinom((bds+bde), bdp, bprob, 0);
+          bcs += bscore;
+        }
+      }
+      if (bcs > 0.) score = -log10(bcs);
+      else score = 0.;
+      //cerr << winstart << "\t" << window.buckets.size() << "\t" << score << endl;
+    }
 
     if (score > 1.) { // merge and print      
  
