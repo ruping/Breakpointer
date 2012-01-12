@@ -163,11 +163,11 @@ int main (int argc, char **argv){
       }
       fclose(IN);
     }
-  } //file or file name decided and stored in vector "fnames"
+  }  //file or file name decided and stored in vector "fnames"
 
   cerr << "the input mapping files are:" << endl;
   vector <string>::iterator fit = fnames.begin();
-  for(; fit != fnames.end(); fit++){
+  for(; fit != fnames.end(); fit++) {
     cerr << *fit << endl;
   }
 
@@ -178,16 +178,15 @@ int main (int argc, char **argv){
   // open the BAM file(s)  
   BamMultiReader reader;
   reader.Open(fnames);
-
+  
   // get header & reference information
   string header = reader.GetHeaderText();
   RefVector refs = reader.GetReferenceData();
-  if ( !reader.LocateIndexes() )     // opens any existing index files that match our BAM files
+
+  if ( ! reader.LocateIndexes() )     // opens any existing index files that match our BAM files
      reader.CreateIndexes();         // creates index files for BAM files that still lack one
 
   BamAlignment bam;
-
-  //reader.Jump(reader.GetReferenceID("chrX"),0);
 
   while (reader.GetNextAlignment(bam)) {  //getting each alignment
 
@@ -201,7 +200,7 @@ int main (int argc, char **argv){
          continue;
     }
 
-    if (refs.at(bam.RefID).RefName != oldchr && !windows.empty()) { //a new chr, the windows should be printed out and then clean up
+    if (refs.at(bam.RefID).RefName != oldchr && !windows.empty()) {  //a new chr, the windows should be printed out and then clean up
 
       map <unsigned int,window>::iterator iter = windows.begin();
       for (; iter != windows.end() ; iter++) { //print the last windows of the old chr
@@ -224,7 +223,6 @@ int main (int argc, char **argv){
     string strand = "+";
     if ( bam.IsReverseStrand() ) strand = "-";
 
-    
     unsigned int alignmentStart, alignmentEnd;
     //CIGAR string and figure out the alignment blocks
     //vector<int> blockLengths;
@@ -433,11 +431,11 @@ inline void print_endepth(const string &chr, unsigned int winstart, const float 
 
     double score;
 
-    if (prob != 0.){  // single
+    if (prob != 0.) {  // single
       score = pbinom((starts+ends), depth, prob, 0);
       score = -log10(score);
     }
-    else {            // multiple
+    else {             // multiple
       float bcs = 0.;
       map <unsigned int, struct bucket>::iterator bit = window.buckets.begin();
       for (; bit != window.buckets.end(); bit++) {
