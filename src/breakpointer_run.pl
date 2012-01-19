@@ -32,6 +32,8 @@ my $out_dir = "./";
 my $unique = 0;
 my $tag_uniq = "XT";
 my $val_uniq = 85;
+my $qual_clip = 0;
+my $mistag = "MD";
 my $unmapped = "";
 my $basename = "";
 my $help;
@@ -54,6 +56,8 @@ GetOptions (
             "unique=i"     => \$unique,
             "tag_uniq=s"   => \$tag_uniq,
             "val_uniq=i"   => \$val_uniq,
+            "mistag=s"     => \$mistag,
+            "qualclip"     => \$qual_clip,
             "unmap=s"      => \$unmapped,
             "basename=s"   => \$basename,
             "help|h"       => \$help,
@@ -230,7 +234,7 @@ if (exists $runlevel{$runlevels}) {
   my $endskewmis = $basename."\.endskew\.mis\.gff";
   my $op_regionf = "--region $region_f";
   my $op_mapping = "--mapping $mapfile";
-  my $op_readlen = "--readlen 36";
+  my $op_readlen = "";
   if ($readlen != 0) {
     $op_readlen = "--readlen $readlen";
   }
@@ -246,8 +250,16 @@ if (exists $runlevel{$runlevels}) {
   if ($val_uniq ne "85") {
     $op_valu = "--val_uniq $val_uniq";
   }
+  my $op_qualclip = "--qualclip no";
+  if ($qual_clip){
+    $op_qualclip = "--qualclip phred33";
+  }
+  my $op_mistag = "";
+  if ($mistag ne "MD"){
+    $op_mistag = "--mistag $mistag";
+  }
 
-  my $cmd = "$BP/breakmis $op_regionf $op_mapping $op_readlen $op_unique $op_tagu $op_valu >$out_dir/$endskewmis";
+  my $cmd = "$BP/breakmis $op_regionf $op_mapping $op_readlen $op_unique $op_tagu $op_valu $op_qualclip $op_mistag >$out_dir/$endskewmis";
   if (-e "$out_dir/$endskewmis") {
     printf STDERR "$out_dir/$endskewmis exists, skip running RUNLEVEL 2\n";
   } else {
@@ -319,6 +331,8 @@ sub helpm {
   print "\t--unique\t<0/1>\t\t0: take all the alignments (default), 1: take only unique alinged reads.\n\t\t\t\t\tIf your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0).\n\t\t\t\t\tIf the BAM files contain many multi-location alignments, it is better to set it to 1.\n\t\t\t\t\tHowever, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).\n";
   print "\t--tag_uniq\t<string>\tthe tag in the BAM file denotating whether a read is uniquely mapped (default \"XT\" is taken as output from BWA).\n";
   print "\t--val_uniq\t<int>\t\tthe value for the above tag of uniquely mapped reads (default \"85\" is taken as from the output from BWA).\n";
+  print "\t--mistag\t<string>\tthe bam tag for mismatch string, usually it is MD, but user can define it by using this option.\n";
+  print "\t--qualclip\t\t\twhether to do the quality clipping for mismatch screening, default no.\n";
   print "\t--noexecute\t\t\tRunning pipeline without executing the program, for testing purpose only.\n";
   print "\t--runlevel\t<int>\t\tThe stages of runlevel, 3 in total, either set with individual level \"1\" or multi levels like \"1-3\" (default) \n";
   print "\t\t\t\t\trunlevel 1: scan the read alignment, searching for depth skewed regions;\n";

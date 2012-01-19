@@ -67,7 +67,7 @@ inline void splitgfftag(const string &str, map <string, string> &elements, const
 inline void eatline(const string &str, deque <struct region> &regions_ref);
 inline string int2str(unsigned int &i);
 inline string flo2str(float &f);
-inline void print_mismatch(struct region &region, unsigned int &readlength);
+inline void print_mismatch(struct region &region);
 inline void finished(const unsigned int &where);
 
 int main (int argc, char *argv[]) {
@@ -75,10 +75,13 @@ int main (int argc, char *argv[]) {
   struct parameters *param = 0;
   param = interface(param, argc, argv);
 
-  unsigned int readlen = param->readlen;
+  unsigned int readlen = 0;
+  if ( param->readlen ) readlen = param->readlen;  //argument readlength
+  else cerr << "no readlength argument is given, using variable read length setting" << endl;
 
   unsigned int endlen;
-  if (readlen < 50) endlen = 10;
+  if (readlen == 0) endlen = 10;
+  else if (readlen < 50) endlen = 10;
   else if (readlen >=50 && readlen <= 100) endlen = 15;
   else endlen = 20;
 
@@ -98,11 +101,14 @@ int main (int argc, char *argv[]) {
   else val_uniq = 85;   //default for BWA alignment
   cerr << "unique tag is: " << tag_uniq << "\t" << val_uniq << endl;
 
+  string mistag = param->mistag;  // tag for mismatch
+  if (mistag == "") mistag = "MD";
+  cerr << "mismatch tag in the bam file is: " << mistag << endl;
+
   string old_chr = "SRP";
   unsigned int oldstart = 0;  
   map <string, unsigned int> pileup;             //SET container of piling-up reads
  
-
 //-------------------------------------------------------------------------------------------------------+
 // end of file or filenames                                                                              |
 //-------------------------------------------------------------------------------------------------------+
@@ -189,7 +195,7 @@ int main (int argc, char *argv[]) {
     if (chr_id == -1) {  //reference not found
 
       for (; it != regions.end() && it->chr == old_chr; ) {
-        print_mismatch(*it, readlen);       // print the old region info
+        print_mismatch(*it);       // print the old region info
         it = regions.erase(it);             // erase the current region
       }
 
@@ -199,7 +205,7 @@ int main (int argc, char *argv[]) {
         eatline(line, regions);
         it = regions.begin();
         if (it->chr == old_chr){
-          print_mismatch(*it, readlen);
+          print_mismatch(*it);
           regions.clear();
           continue;
         }
@@ -220,7 +226,12 @@ int main (int argc, char *argv[]) {
       if (bam.IsMapped() == false) continue;  //skip unaligned reads
 
       string read_qual =  bam.Qualities;
-      if (read_qual.size() != readlen) continue; //skip the read with different length
+      unsigned int real_length = read_qual.size();
+
+      if (readlen != 0) {     // the length is preset
+        if (real_length != readlen) //skip the read with different length
+          continue;
+      }
  
       string queryB   = bam.QueryBases;
     
@@ -250,7 +261,7 @@ int main (int argc, char *argv[]) {
         clipright = 10000;
         unsigned int qpos = 0;
         unsigned int qsize = 0;
-        for (; qpos < read_qual.size(); qpos++){
+        for (; qpos < real_length; qpos++){
           int qual_now;
           if (qual_clip == "phred33")  qual_now = int(read_qual[qpos]) - 33;
           else if (qual_clip == "phred64")  qual_now = int(read_qual[qpos]) - 64;
@@ -262,14 +273,14 @@ int main (int argc, char *argv[]) {
             qsize++;
             if (qsize >= 5) {
               if (clipleft == 10000) {clipleft = (qpos + 1) - qsize;}
-              clipright = readlen - (qpos + 1);
+              clipright = real_length - (qpos + 1);
             } 
           } //qual_clip above threshold
           else
             qsize = 0;
         }
-        if (clipleft == 10000)  clipleft  = readlen;
-        if (clipright == 10000) clipright = readlen;      
+        if (clipleft == 10000)  clipleft  = real_length;
+        if (clipright == 10000) clipright = real_length;      
         if (clipleft != 0 || clipright != 0) clipStatus = true;
       }
       // end: get clipping infomation
@@ -280,7 +291,7 @@ int main (int argc, char *argv[]) {
       vector <unsigned int> mismatch;
       vector <unsigned int> fbpos;
       bool MisStatus = false;
-      if (bam.GetTag("MD", MD)) {
+      if (bam.GetTag(mistag, MD)) {
         splitstring(MD, tagMD, "ACGTN^");
         if (tagMD.size() > 1) {
           tagMD.pop_back();
@@ -291,7 +302,7 @@ int main (int argc, char *argv[]) {
             pos += (atoi((*mditer).c_str()) + 1);              //get the position in the alignement
 
             if (clipStatus == false) {  //clipStatus == false
-              if ( pos < endlen || pos > (readlen - endlen + 1) ) {           //mismatch in the ends
+              if ( pos < endlen || pos > (real_length - endlen + 1) ) {           //mismatch in the ends
                 unsigned int mis = pos + (alignmentStart - 1);                // to genomic coordinates
                 mismatch.push_back(mis);
                 if (MisStatus == false) MisStatus = true;
@@ -304,8 +315,8 @@ int main (int argc, char *argv[]) {
             }  //noclip
 
             else {                     //clipStatus == true
-              if (pos > clipleft && pos < (readlen - clipright + 1)) {       // not in clipped region
-                if (pos < endlen || pos > (readlen - endlen + 1)) {
+              if (pos > clipleft && pos < (real_length - clipright + 1)) {       // not in clipped region
+                if (pos < endlen || pos > (real_length - endlen + 1)) {
                   unsigned int mis = pos + (alignmentStart - 1);             // to genomic coordinates
                   mismatch.push_back(mis);
                   if (MisStatus == false) MisStatus = true;
@@ -384,7 +395,7 @@ int main (int argc, char *argv[]) {
         bool misinside = false;
 
         if (iter->end < alignmentStart) {            // the region end is beyond the alignmentStart
-          print_mismatch(*iter, readlen);            // print out 
+          print_mismatch(*iter);            // print out 
           iter = regions.erase(iter);                // this region should be removed 
           if ( regions.empty() ){                    // regions is empty
             getline(region_f, line);                 // get a line of region file
@@ -396,7 +407,6 @@ int main (int argc, char *argv[]) {
           }
           continue;
         }
-
 
         if (iter->end >= alignmentStart && iter->start <= alignmentEnd) {  //overlapping, should add some coverage
 
@@ -477,7 +487,7 @@ int main (int argc, char *argv[]) {
     // bam alignments in this region have been read, need to loop back
     it = regions.begin();                    //reset to beginning
     for (; it != regions.end() && it->chr == old_chr; ) {  // there are some regions left
-      print_mismatch(*it, readlen);          // print the old region info
+      print_mismatch(*it);          // print the old region info
       it = regions.erase(it);                // erase the current region
     }
 
@@ -488,7 +498,7 @@ int main (int argc, char *argv[]) {
       eatline(line, regions);
       it = regions.begin();
       if (it->chr == old_chr){
-        print_mismatch(*it, readlen);
+        print_mismatch(*it);
         regions.clear();
         continue;
       }
@@ -642,7 +652,7 @@ inline void ParseCigar(const vector<CigarOp> &cigar, vector<int> &blockStarts, v
   alignmentEnd = currPosition;
 }
 
-inline void print_mismatch(struct region &region, unsigned int &readlength){  // do some mismatch screening thresholding to reach high accuracy
+inline void print_mismatch(struct region &region){  // do some mismatch screening thresholding to reach high accuracy
 
   unsigned int realmis      = 0;
   unsigned int totalmispos  = 0;
@@ -689,7 +699,7 @@ inline void print_mismatch(struct region &region, unsigned int &readlength){  //
   } // current SVread
 
   string seedseq = "RME";    // decide the seed sequence 
-  if (max_nme > 0){
+  if (max_nme > 0) {
     if (topreads[max_nme].size() == 1){
       vector <struct SVread>::iterator topiter = topreads[max_nme].begin();
       set <unsigned int>::iterator meiter = (topiter->me).begin();
@@ -699,7 +709,7 @@ inline void print_mismatch(struct region &region, unsigned int &readlength){  //
       }
       else {
         if (topiter->seq == "NA") seedseq = (topiter->name)+"["+(topiter->strand)+"s]";
-        else seedseq = (topiter->seq).substr(readlength-25,25);
+        else seedseq = (topiter->seq).substr((topiter->seq).length()-25,25);
       }
     }  
     else {
@@ -712,7 +722,7 @@ inline void print_mismatch(struct region &region, unsigned int &readlength){  //
       }
       else if (topiter2->start < region.start && topiter2->end <= region.end) {
          if (topiter->seq == "NA") seedseq = (topiter->name)+"["+(topiter->strand)+"s]";
-         else seedseq = (topiter2->seq).substr(readlength-25,25);
+         else seedseq = (topiter2->seq).substr((topiter2->seq).length()-25,25);
       }
       else {
         // where is the changing point? if ratio2 > 0.5 take the start, else take the end
@@ -733,7 +743,7 @@ inline void print_mismatch(struct region &region, unsigned int &readlength){  //
               }
               else {
                 if (topiter->seq == "NA") seedseq = (topiter->name)+"["+(topiter->strand)+"s]";
-                else seedseq = (toprem->seq).substr(readlength-25,25);
+                else seedseq = (toprem->seq).substr((toprem->seq).length()-25,25);
               }
               break;
           } // turning
@@ -741,7 +751,7 @@ inline void print_mismatch(struct region &region, unsigned int &readlength){  //
 
         if (seedseq == "RME"){
           if (toprem->seq == "NA") seedseq = (toprem->name)+"["+(toprem->strand)+"s]";
-          else seedseq = (toprem->seq).substr(readlength-25,25);
+          else seedseq = (toprem->seq).substr((toprem->seq).length()-25,25);
         }
 
       } //else

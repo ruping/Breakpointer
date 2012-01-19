@@ -20,6 +20,7 @@ struct parameters {
   char* qual_clip;
   unsigned int unique;
   char* tag_uniq;
+  char* mistag;
   unsigned int val_uniq;
   unsigned int readlen;
 };
@@ -46,6 +47,7 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
   param->mapping_f = new char;
   param->qual_clip = new char;
   param->tag_uniq  = new char;
+  param->mistag    = new char;
 
   const struct option long_options[] ={
     {"region",1,0, 'r'},
@@ -55,6 +57,7 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
     {"val_uniq",1,0,'v'},
     {"readlen",1,0,'l'},
     {"qualclip",1,0,'q'},
+    {"mistag",1,0,'e'},
     {"help",0,0,'h'},
     {0, 0, 0, 0}
   };
@@ -63,7 +66,7 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
   while (1){
 
     int option_index = 0;
-    c = getopt_long_only (argc, argv,"hur:m:l:q:v:t:",long_options, &option_index);
+    c = getopt_long_only (argc, argv,"hur:m:l:q:v:t:e:",long_options, &option_index);
 
     if (c == -1){
       break;
@@ -83,6 +86,9 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
       break;
     case 't':
       param->tag_uniq = optarg;
+      break;
+    case 'e':
+      param->mistag = optarg;
       break;
     case 'v':
       param->val_uniq = atoi(optarg);
@@ -125,6 +131,7 @@ void usage()
   fprintf(stdout, "-q --qualclip   <string> Quality type for clipping (phred33,solexa64,phred64,no), default is Phred33, if \"no\", clipping is turned off.\n");
   fprintf(stdout, "-u --unique              take only uniquelly mapped reads (default: take all mapped reads). \n                         since different mappers generate different tags for uniqueness, if -q is set, user shoule provide unique tag info (see tag/val_uniq). \n                         we recommand not to set this option if the mapping file only contain a few multiple location reads, in case users are not sure about the unique tags.\n");
   fprintf(stdout, "-t --tag_uniq   <string> The tag in the bam file denotating whether a read is uniquely mapped (default \"XT\" is taken as from BWA).\n");
+  fprintf(stdout, "-t --mistag     <string> The tag in the bam file denotating the mismatch string.\n");
   fprintf(stdout, "-v --val_uniq   <int>    The value for the above tag of uniquely mapped reads (default value is taken as from the output from BWA).\n");
   fprintf(stdout, "-h --help                Print the help message\n");
   fprintf(stdout, "\n");
@@ -137,5 +144,6 @@ void delete_param(struct parameters* param)
   delete(param->mapping_f);
   delete(param->qual_clip);
   delete(param->tag_uniq);
+  delete(param->mistag);
   delete(param);
 }
