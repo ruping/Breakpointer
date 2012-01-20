@@ -43,8 +43,8 @@ Options
 	--winsize   <int>   the window size, default is 10 for < 50bp reads, 20 for longer/variable length reads.
 	--readlen   <int>   the length of the read (default: using variable read length).
 	--mapping   <string>  the mapping file in BAM format. It could be an individual BAM file or a file listing the filenames of multiple BAM files (line seperate).All the BAM files must be sorted SAMELY according to chromosomes and coordinates. They should contain header tag "@HD   VN:1.0  SO:coordinate".
-	--outdir    <string>  the output directory (default: current directory)
---unique        <0/1>      0: take all the alignments (default), 1: take only unique alinged reads. If your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0). If the BAM files contain many multi-location alignments, it is better to set it to 1. However, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).
+	--outdir   <string>  the output directory (default: current directory)
+	--unique   <0/1>   0: take all the alignments (default), 1: take only unique alinged reads. If your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0). If the BAM files contain many multi-location alignments, it is better to set it to 1. However, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).
 --tag_uniq      <string>   the tag in the BAM file denotating whether a read is uniquely mapped (default "XT" is taken as output from BWA).
 --val_uniq      <int>      the value for the above tag of uniquely mapped reads (default "85" is taken as from the output from BWA).
 --mistag        <string>   the bam tag for mismatch string, usually it is MD, but user can define it by using this option.
