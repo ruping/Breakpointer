@@ -47,9 +47,9 @@ Options
 	--unique   <0/1>   0: take all the alignments (default), 1: take only unique alinged reads. If your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0). If the BAM files contain many multi-location alignments, it is better to set it to 1. However, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).
 	--tag_uniq  <string>  the tag in the BAM file denotating whether a read is uniquely mapped (default "XT" is taken as output from BWA).
 	--val_uniq  <int>   the value for the above tag of uniquely mapped reads (default "85" is taken as from the output from BWA).
-	--mistag   <string>   the bam tag for mismatch string, usually it is MD, but user can define it by using this option.
-	--qualclip          whether to do the quality clipping for mismatch screening, default no.
---noexecute                Running pipeline without executing the program, for testing purpose only.
+	--mistag   <string>  the bam tag for mismatch string, usually it is MD, but user can define it by using this option.
+	--qualclip         whether to do the quality clipping for mismatch screening, default no.
+	--noexecute         Running pipeline without executing the program, for testing purpose only.
 --runlevel      <int>      The stages of runlevel, 3 in total, either set with individual level "1" or multi levels like "1-3" (default). runlevel 1: scan the read alignment, searching for depth skewed regions; runlevel 2: mismatch screeing for each depth skewed region; runlevel 3: validate each candidate region by looking for support from unmappable reads.
 --unmap         <string>   File containing unmapped reads, either one file or a file listing the names of multiple files. must be fasta/fastq format.
 --help                     print this help message.
