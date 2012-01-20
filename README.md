@@ -52,7 +52,7 @@ Options
 	--noexecute        Running pipeline without executing the program, for testing purpose only.
 	--runlevel  <int>   The stages of runlevel, 3 in total, either set with individual level "1" or multi levels like "1-3" (default). runlevel 1: scan the read alignment, searching for depth skewed regions; runlevel 2: mismatch screeing for each depth skewed region; runlevel 3: validate each candidate region by looking for support from unmappable reads.
 	--unmap   <string>   File containing unmapped reads, either one file or a file listing the names of multiple files. must be fasta/fastq format.
-	--help             print this help message.
+	--help           print this help message.
 
 
 
