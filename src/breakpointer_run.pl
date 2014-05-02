@@ -114,7 +114,7 @@ if ($mapfile eq ""){
   helpm();
 }
 else {
-  $basename = basename($mapfile);
+  $basename = basename($mapfile) if ($basename eq "");
   unless ( -r $mapfile ) {
     printf STDERR "warning: $mapfile is not readable or not present.\n";
     exit(0);
@@ -145,11 +145,9 @@ else{
   printf STDERR "take only uniquely mapped reads.\n";
 }
 
-printf STDERR "unique tag in the mapping file is $tag_uniq.\n";
-printf STDERR "value for the unique tag is $val_uniq.\n";
 
 if ($readlen == 0){
-  printf STDERR "warning: no readlen is given, will take default 36bp.\n";
+  printf STDERR "warning: no readlen is given, will take default: variable read length.\n";
 }
 else{
   printf STDERR "read length is $readlen.\n";

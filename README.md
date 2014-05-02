@@ -37,6 +37,8 @@ Or you could run step by step:
 	breakpointer [options]
 	breakmis [options]
 
+Be careful if you set --unique to 1, as different bam files may contain different tags indicating unique alignments. Currently Breakpointer can handle the tags from the bam output of BWA (with XT tags), bowtie(using mapping scores) or GSNAP (with NH tags). If your bam files have different tags, send me an email (shown in the end).  
+
 
 Options
 ---
@@ -45,8 +47,6 @@ Options
 	--mapping   <string>  the mapping file in BAM format. It could be an individual BAM file or a file listing the filenames of multiple BAM files (line seperate).All the BAM files must be sorted SAMELY according to chromosomes and coordinates. They should contain header tag "@HD   VN:1.0  SO:coordinate".
 	--outdir   <string>  the output directory (default: current directory)
 	--unique   <0/1>   0: take all the alignments (default), 1: take only unique alinged reads. If your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0). If the BAM files contain many multi-location alignments, it is better to set it to 1. However, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).
-	--tag_uniq  <string>  the tag in the BAM file denotating whether a read is uniquely mapped (default "XT" is taken as output from BWA).
-	--val_uniq  <int>   the value for the above tag of uniquely mapped reads (default "85" is taken as from the output from BWA).
 	--mistag   <string>  the bam tag for mismatch string, usually it is MD, but user can define it by using this option.
 	--qualclip        whether to do the quality clipping for mismatch screening, default no.
 	--noexecute        Running pipeline without executing the program, for testing purpose only.
@@ -58,11 +58,12 @@ Options
 
 Contact
 ---
-Sun Ruping
+Sun, Ruping
 
 Dept. Vingron (Computational Molecular Biology)
 Max Planck Institute for Molecular Genetics. Ihnestr. 63-73, D-14195 Berlin, Germany
+Current: Department of Systems Biology, Columbia University, NY, USA.
 
-Email: ruping@molgen.mpg.de
+Email: rs3412@c2b2.columbia.edu
 
 Project Website: https://github.com/ruping/Breakpointer
