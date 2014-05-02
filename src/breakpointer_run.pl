@@ -30,8 +30,6 @@ my $mapfile = "";
 my $readlen = 0;
 my $out_dir = "./";
 my $unique = 0;
-my $tag_uniq = "XT";
-my $val_uniq = 85;
 my $qual_clip = 0;
 my $mistag = "MD";
 my $unmapped = "";
@@ -54,8 +52,6 @@ GetOptions (
             "readlen=i"    => \$readlen,
             "outdir=s"     => \$out_dir,
             "unique=i"     => \$unique,
-            "tag_uniq=s"   => \$tag_uniq,
-            "val_uniq=i"   => \$val_uniq,
             "mistag=s"     => \$mistag,
             "qualclip"     => \$qual_clip,
             "unmap=s"      => \$unmapped,
@@ -198,16 +194,8 @@ if (exists $runlevel{$runlevels}) {
   if ($readlen != 0) {
     $op_readlen = "--readlen $readlen";
   }
-  my $op_tagu = "";
-  if ($tag_uniq ne "XT") {
-    $op_tagu = "--tag_uniq $tag_uniq";
-  }
-  my $op_valu = "";
-  if ($val_uniq ne "85") {
-    $op_valu = "--val_uniq $val_uniq";
-  }
 
-  my $cmd = "$BP/breakpointer $op_mapfile $op_winsize $op_readlen $op_unique $op_tagu $op_valu >$out_dir/$endskew";
+  my $cmd = "$BP/breakpointer $op_mapfile $op_winsize $op_readlen $op_unique >$out_dir/$endskew";
   if (-e "$out_dir/$endskew") {
     printf STDERR "$out_dir/$endskew exists, skip running RUNLEVEL 1\n";
   } else {
@@ -242,14 +230,6 @@ if (exists $runlevel{$runlevels}) {
   if ($unique != 0) {
     $op_unique = "--unique $unique";
   }
-  my $op_tagu = "";
-  if ($tag_uniq ne "XT") {
-    $op_tagu = "--tag_uniq $tag_uniq";
-  }
-  my $op_valu = "";
-  if ($val_uniq ne "85") {
-    $op_valu = "--val_uniq $val_uniq";
-  }
   my $op_qualclip = "--qualclip no";
   if ($qual_clip){
     $op_qualclip = "--qualclip phred33";
@@ -259,7 +239,7 @@ if (exists $runlevel{$runlevels}) {
     $op_mistag = "--mistag $mistag";
   }
 
-  my $cmd = "$BP/breakmis $op_regionf $op_mapping $op_readlen $op_unique $op_tagu $op_valu $op_qualclip $op_mistag >$out_dir/$endskewmis";
+  my $cmd = "$BP/breakmis $op_regionf $op_mapping $op_readlen $op_unique $op_qualclip $op_mistag >$out_dir/$endskewmis";
   if (-e "$out_dir/$endskewmis") {
     printf STDERR "$out_dir/$endskewmis exists, skip running RUNLEVEL 2\n";
   } else {
@@ -329,8 +309,6 @@ sub helpm {
   print "\t--mapping\t<string>\tthe mapping file in BAM format. It could be an individual BAM file or a file listing the filenames of multiple BAM files (line seperated).\n\t\t\t\t\tAll the BAM files must be sorted SAMELY according to chromosomes and coordinates. They should contain header tag \"\@HD\tVN:1.0\tSO:coordinate\".\n";
   print "\t--outdir\t<string>\tthe output directory (default: current directory)\n";
   print "\t--unique\t<0/1>\t\t0: take all the alignments (default), 1: take only unique alinged reads.\n\t\t\t\t\tIf your BAM files only contain uniquely mapped reads or only a few non-unique reads, we recommand to leave it as default (0).\n\t\t\t\t\tIf the BAM files contain many multi-location alignments, it is better to set it to 1.\n\t\t\t\t\tHowever, since different mappers generate different tags for uniqueness, if 1 is set, user shoule provide unique tag info (see tag/val_uniq).\n";
-  print "\t--tag_uniq\t<string>\tthe tag in the BAM file denotating whether a read is uniquely mapped (default \"XT\" is taken as output from BWA).\n";
-  print "\t--val_uniq\t<int>\t\tthe value for the above tag of uniquely mapped reads (default \"85\" is taken as from the output from BWA).\n";
   print "\t--mistag\t<string>\tthe bam tag for mismatch string, usually it is MD, but user can define it by using this option.\n";
   print "\t--qualclip\t\t\twhether to do the quality clipping for mismatch screening, default no.\n";
   print "\t--noexecute\t\t\tRunning pipeline without executing the program, for testing purpose only.\n";

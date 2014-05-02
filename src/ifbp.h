@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2011 Sun Ruping <ruping@molgen.mpg.de>
+ Copyright (C) 2011 Sun Ruping <rs3412@columbia.edu>
 
  This file is part of Breakpointer.
 
@@ -20,8 +20,8 @@ struct parameters {
   unsigned int readlen;
   unsigned int unique;
   unsigned int indiprint;
-  char* tag_uniq;
-  unsigned int val_uniq;
+  //char* tag_uniq;
+  //unsigned int val_uniq;
 };
 
 struct parameters* interface(struct parameters* param,int argc, char *argv[]);
@@ -43,7 +43,7 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
 
   param = new struct parameters;
   param->mapping_f = new char;
-  param->tag_uniq = new char;
+  //param->tag_uniq = new char;
   //param->val_uniq = new char;
 
   const struct option long_options[] ={
@@ -52,8 +52,8 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
     {"mapping",1,0,'m'},
     {"windowsize",1,0,'w'},
     {"indiprint",0,0,'i'},
-    {"tag_uniq",1,0,'t'},
-    {"val_uniq",1,0,'v'},
+    //{"tag_uniq",1,0,'t'},
+    //{"val_uniq",1,0,'v'},
     {"help",0,0,'h'},
     {0,0,0,0}
   };
@@ -61,7 +61,7 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
   while (1) {
 
     int option_index = 0;
-    c = getopt_long_only (argc, argv,"hium:w:l:v:t:",long_options, &option_index);
+    c = getopt_long_only (argc, argv,"hium:w:l:",long_options, &option_index);
 
     if (c == -1){
       break;
@@ -82,12 +82,12 @@ struct parameters* interface(struct parameters* param, int argc, char *argv[]){
     case 'l':
       param->readlen = atoi(optarg);
       break;
-    case 't':
-      param->tag_uniq = optarg;
-      break;
-    case 'v':
-      param->val_uniq = atoi(optarg);
-      break;
+    //case 't':
+    //param->tag_uniq = optarg;
+    //break;
+    //case 'v':
+    //param->val_uniq = atoi(optarg);
+    //break;
     case 'i':
       param->indiprint = 1;
       break;
@@ -121,8 +121,8 @@ void usage()
   fprintf(stdout, "-w --windowsize  <int>    the size in bp of the sliding window (default: 10 for reads < 50bp, 20 for longer and variable read length).\n");
   fprintf(stdout, "-l --readlen     <int>    the size in bp of the read length (default: allowing variable read length).\n");
   fprintf(stdout, "-u --unique               take only uniquelly mapped reads (default: take all mapped reads).\n                          since different mappers generate different tags for uniqueness, if -q is set, user shoule provide unique tag info (see tag/val_uniq). \n                          we recommand not to set this option if the mapping file only contain a few multiple location reads, in case users are not sure about the unique tags\n");
-  fprintf(stdout, "-t --tag_uniq    <string> the tag in the bam file denotating whether a read is uniquely mapped (default \"XT\" is taken as from BWA).\n");
-  fprintf(stdout, "-v --val_uniq    <int>    the value for the above tag of uniquely mapped reads (default value is taken as from the output from BWA).\n");
+  //fprintf(stdout, "-t --tag_uniq    <string> the tag in the bam file denotating whether a read is uniquely mapped (default \"XT\" is taken as from BWA).\n");
+  //fprintf(stdout, "-v --val_uniq    <int>    the value for the above tag of uniquely mapped reads (default value is taken as from the output from BWA).\n");
   fprintf(stdout, "-h --help                 print the help message.\n");
   fprintf(stdout, "\n");
 }
@@ -130,6 +130,6 @@ void usage()
 void delete_param(struct parameters* param)
 {
   delete(param->mapping_f);
-  delete(param->tag_uniq);
+  //delete(param->tag_uniq);
   delete(param);
 }

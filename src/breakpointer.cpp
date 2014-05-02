@@ -7,7 +7,9 @@
   Dept. Vingron (Computational Mol. Bio.)
   Max-Planck-Institute for Molecular Genetics
   Ihnestr. 73, D-14195, Berlin, Germany
-  EMAIL: ruping@molgen.mpg.de
+
+  current: Department of Systems Biology, New York, USA
+  EMAIL: rs3412@columbia.edu
 
   Breakpointer is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License.
@@ -105,13 +107,12 @@ int main (int argc, char **argv){
     cerr << "binomial probs will be decided for each length group" << endl;
   }
 
-  unsigned int unique = param->unique;  // argument unique
-  string tag_uniq = param->tag_uniq;
-  unsigned int val_uniq;
-  if (tag_uniq == "") tag_uniq = "XT";  //default for BWA alignment
-  if (param->val_uniq) val_uniq = param->val_uniq;
-  else val_uniq = 85;                   //default for BWA alignment
-  cerr << "unique tag is: " << tag_uniq << "\t" << val_uniq << endl; 
+  //string tag_uniq = param->tag_uniq;
+  //unsigned int val_uniq;
+  //if (tag_uniq == "") tag_uniq = "XT";  //default for BWA alignment
+  //if (param->val_uniq) val_uniq = param->val_uniq;
+  //else val_uniq = 85;                   //default for BWA alignment
+  //cerr << "unique tag is: " << tag_uniq << "\t" << val_uniq << endl; 
   
   string oldchr;                        //for checking the chromosome
   unsigned int oldstart = 0;            //compare start (piling up)
@@ -213,10 +214,26 @@ int main (int argc, char **argv){
       oldstart = 0;
     }
    
-    if (unique == 1) {
-      unsigned int XT;
-      if (bam.GetTag(tag_uniq, XT)) {             // only for bwa mapping reporting bam file
-        if (XT != val_uniq) continue;              // skip non-uniquely mapped reads
+
+    unsigned int unique = 0;
+    if ( bam.HasTag("NH") ) {
+      bam.GetTag("NH", unique);                   // uniqueness
+    } else if (bam.HasTag("XT")) {
+      string xt;
+      bam.GetTag("XT", xt);                       // bwa aligner
+      xt = xt.substr(0,1);
+      if (xt != "R") {
+        unique = 1;
+      }
+    } else {
+      if (bam.MapQuality > 10) {                   // bowtie2
+        unique = 1;
+      }
+    }
+
+    if (param->unique == 1) {
+      if (unique != 1) {                         // skipe uniquelly mapped reads 
+        continue;
       }
     }
 
@@ -398,15 +415,17 @@ inline void ParseCigar(const vector<CigarOp> &cigar, vector<int> &blockStarts, v
       currPosition += cigItr->Length;
     case ('I') : break;
     case ('S') : break;
-    case ('D') : break;
+    case ('D') :
       blockLength  += cigItr->Length;
       currPosition += cigItr->Length;
+      break;
     case ('P') : break;
     case ('N') :
       blockStarts.push_back(currPosition + cigItr->Length);
       blockLengths.push_back(blockLength);
       currPosition += cigItr->Length;
       blockLength = 0;
+      break;
     case ('H') : break;                             // for 'H' - do nothing, move to next op
     default    :
       printf("ERROR: Invalid Cigar op type\n");   // shouldn't get here
